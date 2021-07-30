@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build - vampfern/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true vampfern/react-test npm test
+
+after_success:
+  - docker build -t vampfern/multi-client ./client
+  - docker build -t vampfern/multi-nginx ./nginx
+  - docker build -t vampfern/multi-server ./server
+  - docker build -t vampfern/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push vampfern/multi-client
+  - docker push vampfern/multi-nginx
+  - docker push vampfern/multi-server
+  - docker push vampfern/multi-worker
